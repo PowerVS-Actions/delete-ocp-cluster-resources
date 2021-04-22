@@ -1,5 +1,7 @@
 FROM quay.io/powercloud/powervs-container-host:ocp-latest
 
+RUN microdnf update -y
+
 LABEL authors="Rafael Sene - rpsene@br.ibm.com"
 
 WORKDIR /ocp-delete

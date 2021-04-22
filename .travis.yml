@@ -1,0 +1,30 @@
+os: linux
+
+dist: bionic
+
+language: bash
+
+services: docker
+
+# safelist
+branches:
+  only:
+  - main
+
+jobs:
+  include:
+    - stage: building ppc64le container image
+      arch: ppc64le
+      script:
+        - docker build -t quay.io/powercloud/powervs-actions:delete-ocp-cluster-ppc64le .
+        - docker login quay.io -u $USER_QUAY -p $PWD_QUAY
+        - docker push quay.io/powercloud/powervs-actions:delete-ocp-cluster-ppc64le
+    - stage: building x86_64 container image
+      arch: amd64
+      script:
+        - docker build -t quay.io/powercloud/powervs-actions:delete-ocp-cluster-x86_64 .
+        - docker login quay.io -u $USER_QUAY -p $PWD_QUAY
+        - docker push quay.io/powercloud/powervs-actions:delete-ocp-cluster-x86_64
+    - stage: building multi-arch container image
+      arch: ppc64le
+      script: chmod +x ./multiarch.sh; ./multiarch.sh
