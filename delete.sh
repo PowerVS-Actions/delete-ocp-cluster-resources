@@ -152,6 +152,7 @@ function run() {
     #    volumes andnetwork
     sleep 1m
     delete_network $CLUSTER_ID
+    sleep 1m
     delete_unused_volumes
 }
 
