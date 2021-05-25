@@ -10,6 +10,5 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 docker manifest create quay.io/powercloud/powervs-actions:delete-ocp-cluster \
 quay.io/powercloud/powervs-actions:delete-ocp-cluster-x86_64 quay.io/powercloud/powervs-actions:delete-ocp-cluster-ppc64le
 
-docker login quay.io -u $USER_QUAY -p $PWD_QUAY
-
+docker login quay.io -u "$USER_QUAY" -p "$PWD_QUAY"
 docker manifest push quay.io/powercloud/powervs-actions:delete-ocp-cluster

@@ -1,9 +1,6 @@
 os: linux
-
 dist: bionic
-
 language: bash
-
 services: docker
 
 # safelist
@@ -27,4 +24,4 @@ jobs:
         - docker push quay.io/powercloud/powervs-actions:delete-ocp-cluster-x86_64
     - stage: building multi-arch container image
       arch: ppc64le
-      script: chmod +x ./multiarch.sh; ./multiarch.sh
+      script: chmod +x ./tools/multiarch.sh; ./tools/multiarch.sh;
