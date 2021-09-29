@@ -9,6 +9,7 @@ RUN ibmcloud plugin update power-iaas --force
 ENV API_KEY=""
 ENV POWERVS_CRN=""
 ENV CLUSTER_ID=""
+ENV VPC_REGION=""
 
 COPY ./delete.sh .
 
