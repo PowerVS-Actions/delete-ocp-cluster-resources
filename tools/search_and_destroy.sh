@@ -19,7 +19,7 @@ clear(){
 
     docker run -d -t --rm --name=pvsdel-"$CLUSTER_ID"-"$PVS_REGION"-"$GUID" \
     -e API_KEY="$API_KEY" -e POWERVS_CRN="$POWERVS_CRN" \
-    -e CLUSTER_ID="$CLUSTER_ID" "$CONTAINER_IMAGE"
+    -e CLUSTER_ID="$CLUSTER_ID" -e VPC_REGION="$VPC_REGION" "$CONTAINER_IMAGE"
 }
 
 main(){
