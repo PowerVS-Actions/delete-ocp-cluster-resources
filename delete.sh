@@ -48,6 +48,21 @@ function authenticate() {
     ibmcloud login --no-region --apikey "$APY_KEY" > /dev/null 2>&1
 }
 
+function authenticate_with_region() {
+
+    local APY_KEY="$1"
+    local VPC_REGION="$2"
+
+    if [ -z "$APY_KEY" ]; then
+        echo "API KEY was not set."
+        exit 1
+    fi
+    ibmcloud update -f > /dev/null 2>&1
+    ibmcloud plugin update --all > /dev/null 2>&1
+    ibmcloud login -r "$VPC_REGION" --apikey "$APY_KEY" > /dev/null 2>&1
+}
+
+
 function set_powervs() {
 
     local CRN="$1"
@@ -112,13 +127,86 @@ function delete_ssh_key(){
     fi
 
     ibmcloud pi keys --json | jq -r '.[].name' | grep "$CLUSTER_ID" | xargs -n1 ibmcloud pi key-delete
+}
 
+function clean_vpc_and_dns(){
+
+    CLUSTER_ID=$1
+    VPC_REGION=$2
+
+    if [ -z "$CLUSTER_ID" ]; then
+        echo "CLUSTER_ID was not set."
+        exit 1
+    fi
+    
+    LBS=($(ibmcloud is lbs --json | jq -r '.[] | "\(.id),\(.name)"' | grep $CLUSTER_ID))
+    RGROUP=($(ibmcloud is security-groups --output json | jq -r '.[] | "\(.id),\(.name)"' | grep $CLUSTER_ID))
+    DNS=($(ibmcloud sl dns record-list ocp-ppc64le.com --output json | jq -r '.[] | "\(.data),\(.host),\(.id)"' | grep $CLUSTER_ID))
+    
+    if [ ${#DNS[@]} -eq 0 ]; then
+    	echo "There is no DNS entries to delete!"
+    else
+	for dns in "${DNS[@]}"; do
+		DNS_DATA=$(echo "$dns" | awk -F ',' '{print $1}')
+        	DNS_HOST=$(echo "$dns" | awk -F ',' '{print $2}')
+		DNS_ID=$(echo "$dns" | awk -F ',' '{print $3}')
+
+        	echo "Deleting... $DNS_DATA,$DNS_HOST..."
+		ibmcloud sl dns record-remove "$DNS_ID"
+	done
+   fi
+   sleep 2m
+
+   if [ ${#LBS[@]} -eq 0 ]; then
+       echo "There is no load balancers to delete!"
+   else
+      for lbs in "${LBS[@]}"; do
+          LBS_ID=$(echo "$lbs" | awk -F ',' '{print $1}')
+          LBS_NAME=$(echo "$lbs" | awk -F ',' '{print $2}')
+
+          if [ "$LBS_ID" ]; then
+              echo "Deleting... $LBS_NAME..."
+              ibmcloud is lbd "$LBS_ID" -f
+          fi
+       done
+   fi
+   sleep 8m
+    
+   if [ ${#RGROUP[@]} -eq 0 ]; then
+       echo "There is no resource group to delete!"
+   else
+       for rg in "${RGROUP[@]}"; do
+           RG_ID=$(echo "$rg" | awk -F ',' '{print $1}')
+           RG_NAME=$(echo "$rg" | awk -F ',' '{print $2}')
+           echo "Deleting... $RG_NAME..."
+           ibmcloud is security-group-delete "$RG_ID" -f
+       done
+   fi
+}
+
+function clean_powervs(){
+
+    local POWERVS_CRN="$1"
+    local CLUSTER_ID="$2"
+
+    set_powervs "$POWERVS_CRN"
+
+    delete_vms "$CLUSTER_ID"
+    delete_ssh_key "$CLUSTER_ID"
+
+    #    PowerVS takes some time to remove the VMs
+    #    sleep for 1 min to avoid any issue deleting
+    #    volumes andnetwork
+    sleep 2m
+    delete_network "$CLUSTER_ID"
+    sleep 2m
+    delete_unused_volumes
 }
 
 function help() {
 
     echo
-    echo "clear-cluster.sh API_KEY POWERVS_CRN CLUSTER_ID"
+    echo "clear-cluster.sh API_KEY POWERVS_CRN VPC_REGION (optional) CLUSTER_ID"
     echo
     echo  "CLUSTER_ID can be any string associated with your cluster and its resources"
 }
@@ -143,19 +231,18 @@ function run() {
     check_dependencies
     check_connectivity
 
-    authenticate "$API_KEY"
-    set_powervs "$POWERVS_CRN"
-
-    delete_vms "$CLUSTER_ID"
-    delete_ssh_key "$CLUSTER_ID"
-
-    #    PowerVS takes some time to remove the VMs
-    #    sleep for 1 min to avoid any issue deleting
-    #    volumes andnetwork
-    sleep 1m
-    delete_network "$CLUSTER_ID"
-    sleep 1m
-    delete_unused_volumes
+    if [ -z "$VPC_REGION" ]; then
+        echo "VPC_REGION was not set."
+      	echo "Authenticating without region."
+	authenticate "$API_KEY"
+	clean_powervs "$POWERVS_CRN" "$CLUSTER_ID"
+    else
+    	echo "VPC_REGION was set."
+      	echo "Authenticating using $VPC_REGION vpc region."
+	authenticate_with_region "$API_KEY" "$VPC_REGION"
+	clean_powervs "$POWERVS_CRN" "$CLUSTER_ID"
+	clean_vpc_and_dns "$CLUSTER_ID" "$VPC_REGION"
+    fi
 }
 
 run "$@"
