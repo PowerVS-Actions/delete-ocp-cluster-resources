@@ -36,7 +36,7 @@ function check_connectivity() {
 }
 
 function authenticate() {
-
+    echo "authenticate"
     local APY_KEY="$1"
 
     if [ -z "$APY_KEY" ]; then
@@ -45,11 +45,11 @@ function authenticate() {
     fi
     ibmcloud update -f > /dev/null 2>&1
     ibmcloud plugin update --all > /dev/null 2>&1
-    ibmcloud login --no-region --apikey "$APY_KEY" > /dev/null 2>&1
+    ibmcloud login --no-region --apikey "$APY_KEY"
 }
 
 function authenticate_with_region() {
-
+    echo "authenticate_with_region"
     local APY_KEY="$1"
     local VPC_REGION="$2"
 
@@ -59,7 +59,7 @@ function authenticate_with_region() {
     fi
     ibmcloud update -f > /dev/null 2>&1
     ibmcloud plugin update --all > /dev/null 2>&1
-    ibmcloud login -r "$VPC_REGION" --apikey "$APY_KEY" > /dev/null 2>&1
+    ibmcloud login -r "$VPC_REGION" --apikey "$APY_KEY"
 }
 
 
