@@ -92,7 +92,7 @@ function delete_unused_volumes() {
 }
 
 function delete_vms(){
-
+    echo "Deleting VMs..."
     CLUSTER_ID=$1
 
     if [ -z "$CLUSTER_ID" ]; then
@@ -104,8 +104,8 @@ function delete_vms(){
     grep "$CLUSTER_ID" | awk -F ',' '{print $1}' | xargs -n1 ibmcloud pi instance-delete
 }
 
-function delete_network() {
-
+function delete_network() { 
+    echo "Deleting Network..."
     CLUSTER_ID=$1
 
     if [ -z "$CLUSTER_ID" ]; then
@@ -118,7 +118,7 @@ function delete_network() {
 }
 
 function delete_ssh_key(){
-
+    echo "Deleting SSH Key..."
     CLUSTER_ID=$1
 
     if [ -z "$CLUSTER_ID" ]; then
@@ -130,7 +130,7 @@ function delete_ssh_key(){
 }
 
 function clean_vpc_and_dns(){
-
+    echo "Cleaning VPC, DNS and Security Groups..."
     CLUSTER_ID=$1
     VPC_REGION=$2
 
@@ -185,7 +185,7 @@ function clean_vpc_and_dns(){
 }
 
 function clean_powervs(){
-
+    echo "Cleaning PowerVS..."
     local POWERVS_CRN="$1"
     local CLUSTER_ID="$2"
 
