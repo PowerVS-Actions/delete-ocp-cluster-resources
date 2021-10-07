@@ -44,7 +44,7 @@ function authenticate() {
         exit 1
     fi
     ibmcloud update -f > /dev/null 2>&1
-    ibmcloud plugin update --all > /dev/null 2>&1
+    ibmcloud plugin update --all -f > /dev/null 2>&1
     ibmcloud login --no-region --apikey "$APY_KEY"
 }
 
@@ -58,7 +58,7 @@ function authenticate_with_region() {
         exit 1
     fi
     ibmcloud update -f > /dev/null 2>&1
-    ibmcloud plugin update --all > /dev/null 2>&1
+    ibmcloud plugin update --all -f > /dev/null 2>&1
     ibmcloud login -r "$VPC_REGION" --apikey "$APY_KEY"
 }
 
@@ -93,13 +93,13 @@ function delete_unused_volumes() {
 
 function delete_vms(){
     echo "Deleting VMs..."
-    CLUSTER_ID=$1
+    rpsene-aaa5-lon06=$1
 
     if [ -z "$CLUSTER_ID" ]; then
         echo "CLUSTER_ID was not set."
         exit 1
     fi
-
+    echo "Deleting VMs which matches $CLUSTER_ID..."
     ibmcloud pi ins --json | jq -r '.Payload.pvmInstances[] | "\(.pvmInstanceID),\(.serverName)"' | \
     grep "$CLUSTER_ID" | awk -F ',' '{print $1}' | xargs -n1 ibmcloud pi instance-delete
 }
