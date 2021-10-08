@@ -1,4 +1,4 @@
-FROM quay.io/powercloud/powervs-container-host:ocp-latest
+FROM quay.io/powercloud/powervs-container-host:multi-arch
 
 LABEL authors="Rafael Sene - rpsene@br.ibm.com"
 
