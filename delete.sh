@@ -93,7 +93,6 @@ function delete_unused_volumes() {
 
 function delete_vms(){
     echo "Deleting VMs..."
-    rpsene-aaa5-lon06=$1
 
     if [ -z "$CLUSTER_ID" ]; then
         echo "CLUSTER_ID was not set."
